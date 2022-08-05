@@ -1,20 +1,31 @@
 package com.sunnyweather.android.ui.weather
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.sunnyweather.android.R
+import com.sunnyweather.android.logic.model.Place
 import com.sunnyweather.android.logic.model.Weather
 import com.sunnyweather.android.logic.model.getSky
+import com.sunnyweather.android.ui.place.PlaceFragment
 import java.text.SimpleDateFormat
 import java.util.*
 
 class WeatherActivity : AppCompatActivity() {
+    val drawerLayout: DrawerLayout by lazy { findViewById<DrawerLayout>(R.id.drawerLayout) }
+    private val swipeRefresh: SwipeRefreshLayout by lazy { findViewById<SwipeRefreshLayout>(R.id.swipeRefresh) }
     private val weatherLayout: ScrollView by lazy { findViewById<ScrollView>(R.id.weatherLayout) }
     private val nowLayout: RelativeLayout by lazy { findViewById<RelativeLayout>(R.id.nowLayout) }
     private val titleLayout: FrameLayout by lazy { findViewById<FrameLayout>(R.id.titleLayout) }
@@ -34,14 +45,34 @@ class WeatherActivity : AppCompatActivity() {
     private val carWashingImg: ImageView by lazy { findViewById<ImageView>(R.id.carWashingImg) }
     private val carWashingText: TextView by lazy { findViewById<TextView>(R.id.carWashingText) }
 
-    private val viewModel by lazy { ViewModelProvider(this).get(WeatherViewModel::class.java) }
+    val viewModel by lazy { ViewModelProvider(this).get(WeatherViewModel::class.java) }
 
+    @SuppressLint("ResourceAsColor")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 //        val decorView = window.decorView
 //        decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
 //        window.statusBarColor = Color.TRANSPARENT
         setContentView(R.layout.activity_weather)
+        navBtn.setOnClickListener {
+            drawerLayout.openDrawer(GravityCompat.START)
+        }
+        drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
+
+            override fun onDrawerOpened(drawerView: View) {}
+
+            override fun onDrawerClosed(drawerView: View) {
+                val manager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                manager.hideSoftInputFromWindow(
+                    drawerView.windowToken,
+                    InputMethodManager.HIDE_NOT_ALWAYS
+                )
+            }
+
+            override fun onDrawerStateChanged(newState: Int) {}
+
+        })
         if (viewModel.locationLng.isEmpty()) {
             viewModel.locationLng = intent.getStringExtra("location_lng") ?: ""
         }
@@ -59,10 +90,20 @@ class WeatherActivity : AppCompatActivity() {
                 Toast.makeText(this, "无法获取天气信息", Toast.LENGTH_SHORT).show()
                 result.exceptionOrNull()?.printStackTrace()
             }
+            swipeRefresh.isRefreshing = false
         }
+        swipeRefresh.setColorSchemeColors(R.color.colorPrimary)
+        refreshWeather()
+        swipeRefresh.setOnRefreshListener { refreshWeather() }
         viewModel.refreshWeather(viewModel.locationLng, viewModel.locationLat)
     }
-    private fun showWeatherInfo(weather: Weather){
+
+    fun refreshWeather() {
+        viewModel.refreshWeather(viewModel.locationLng, viewModel.locationLat)
+        swipeRefresh.isRefreshing = true
+    }
+
+    private fun showWeatherInfo(weather: Weather) {
         placeName.text = viewModel.placeName
         val realtime = weather.realtime
         val daily = weather.daily
@@ -79,7 +120,8 @@ class WeatherActivity : AppCompatActivity() {
         for (i in 0 until days) {
             val skycon = daily.skycon[i]
             val temperature = daily.temperature[i]
-            val view = LayoutInflater.from(this).inflate(R.layout.forecast_item, forecastLayout, false)
+            val view =
+                LayoutInflater.from(this).inflate(R.layout.forecast_item, forecastLayout, false)
             val dateInfo = view.findViewById(R.id.dateInfo) as TextView
             val skyIcon = view.findViewById(R.id.skyIcon) as ImageView
             val skyInfo = view.findViewById(R.id.skyInfo) as TextView
