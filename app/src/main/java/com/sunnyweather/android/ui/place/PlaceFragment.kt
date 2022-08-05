@@ -1,5 +1,6 @@
 package com.sunnyweather.android.ui.place
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sunnyweather.android.R
+import com.sunnyweather.android.ui.weather.WeatherActivity
 
 class PlaceFragment : Fragment() {
     private lateinit var bgImageView: ImageView
@@ -22,7 +24,7 @@ class PlaceFragment : Fragment() {
     private lateinit var searchPlaceEdit: EditText
     private lateinit var recyclerView: RecyclerView
 
-    private val viewModel by lazy { ViewModelProvider(this).get(PlaceViewModel::class.java) }
+    val viewModel by lazy { ViewModelProvider(this).get(PlaceViewModel::class.java) }
     private lateinit var adapter: PlaceAdapter
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,23 +41,37 @@ class PlaceFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        if (viewModel.isPlaceSaved()) {
+            val place = viewModel.getSavedPlace()
+            val intent = Intent(context, WeatherActivity::class.java).apply {
+                putExtra("location_lng", place.location.lng)
+                putExtra("location_lat", place.location.lat)
+                putExtra("place_name", place.name)
+            }
+            startActivity(intent)
+            activity?.finish()
+            return
+        }
         val layoutManager = LinearLayoutManager(activity)
         recyclerView.layoutManager = layoutManager
         adapter = PlaceAdapter(this, viewModel.placeList)
         recyclerView.adapter = adapter
+        //每次搜索框有文字变动，调用搜索
         searchPlaceEdit.addTextChangedListener { editable ->
             val content = editable.toString()
             if (content.isNotEmpty()) {
-                viewModel.searchPlaces(content)
+                viewModel.searchPlaces(content)//触发数据变动
             } else {
+                //搜索框文字清空，清除列表和缓存，显示背景图
                 recyclerView.visibility = View.GONE
                 bgImageView.visibility = View.VISIBLE
-                viewModel.placeList.clear()
-                adapter.notifyDataSetChanged()
+                viewModel.placeList.clear()//缓存更新
+                adapter.notifyDataSetChanged()//列表更新
             }
         }
+        //动态观察数据liveData
         viewModel.placeLiveData.observe(viewLifecycleOwner) { result ->
-            val places = result.getOrNull()
+            val places = result.getOrNull()//回调到该监听方法
             if (places != null) {
                 recyclerView.visibility = View.VISIBLE
                 bgImageView.visibility = View.GONE
