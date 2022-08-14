@@ -12,6 +12,7 @@ object ServiceCreator {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
     //接收泛型，从而可以通过不同的接口类创建不同的动态代理对象
+    //create本来就是接收接口类名，返回实现类
     fun <T> create(serviceClass: Class<T>): T = retrofit.create(serviceClass)
     //泛型实化，简化写法，没有这个需要接收类的参数，有了这个写在<>中
     inline fun <reified T> create(): T = create(T::class.java)

@@ -27,6 +27,7 @@ class PlaceFragment : Fragment() {
 
     val viewModel by lazy { ViewModelProvider(this).get(PlaceViewModel::class.java) }
     private lateinit var adapter: PlaceAdapter
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -72,7 +73,7 @@ class PlaceFragment : Fragment() {
         }
         //动态观察数据liveData
         viewModel.placeLiveData.observe(viewLifecycleOwner) { result ->
-            val places = result.getOrNull()//回调到该监听方法
+            val places = result.getOrNull()//协程返回list
             if (places != null) {
                 recyclerView.visibility = View.VISIBLE
                 bgImageView.visibility = View.GONE

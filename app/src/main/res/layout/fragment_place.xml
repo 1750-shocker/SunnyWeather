@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?android:windowBackground">
 
     <ImageView
         android:id="@+id/bgImageView"
@@ -14,7 +15,7 @@
         android:id="@+id/actionBarLayout"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:background="@color/design_default_color_primary">
+        android:background="@color/colorPrimary">
 
         <EditText
             android:id="@+id/searchPlaceEdit"
@@ -25,8 +26,8 @@
             android:layout_marginEnd="10dp"
             android:background="@drawable/search_bg_9"
             android:hint="输入地址"
-            android:lines="1"
             android:inputType="text"
+            android:maxLines="1"
             android:paddingStart="10dp"
             android:paddingEnd="10dp" />
     </FrameLayout>

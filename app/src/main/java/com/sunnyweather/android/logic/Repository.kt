@@ -1,6 +1,5 @@
 package com.sunnyweather.android.logic
 
-import android.util.Log
 import androidx.lifecycle.liveData
 import com.sunnyweather.android.logic.dao.PlaceDao
 import com.sunnyweather.android.logic.model.Place

@@ -25,7 +25,7 @@ object SunnyWeatherNetwork {
     suspend fun getRealtimeWeather(lng: String, lat: String) =
         weatherService.getRealtimeWeather(lng, lat).await()
 
-    //协程简化回调
+    //扩展，高阶，泛型，协程简化回调
     private suspend fun <T> Call<T>.await(): T {
         return suspendCoroutine { continuation ->
             enqueue(object : Callback<T> {
